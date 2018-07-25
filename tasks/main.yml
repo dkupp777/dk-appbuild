@@ -1,0 +1,68 @@
+---
+- name: create application base directoy
+  file:
+    path=/vc/{{ appname }}/current/
+    state=directory
+- name: copy tomcat directory to var
+  shell: 'ls /opt | grep apache-tomcat*'
+  register: tomcat_ver
+- debug:
+    var: tomcat_ver.stdout
+- name: synch tomcat directory to /vc/{{ appname }}/current
+  synchronize:
+    src: /opt/{{ tomcat_ver.stdout }}/
+    dest: /vc/{{ appname }}/current
+  delegate_to: "{{ inventory_hostname }}"   
+- name: copy {{ appname }} .war file to webapps
+  synchronize:
+    src: /media/packages/vc-apps/fasttrack/current/webapps/fasttrack.war
+    dest: /vc/{{ appname }}/current/webapps/{{ appname }}.war
+- name: copy etc directory to target
+  synchronize:
+    src: /media/packages/vc-apps/etc
+    dest: /vc/etc-test
+- name: copy server.xml template
+  template: 
+    src: server.xml.j2
+    dest: /vc/{{ appname }}/current/conf/server.xml
+- name: copy setenv.sh configuration file
+  template:
+    src: setenv.sh.j2
+    dest: /vc/{{ appname }}/current/bin/setenv.sh
+- name: set vps directory ownership
+  file: 
+    dest=/vc/{{ appname }}
+    owner=2000
+    group=2000
+    mode=0755
+    recurse=yes
+- name: copy setenv.sh configuration template
+  template:
+    src: "{{ appname }}-start.sh.j2"
+    dest: /etc/rc.d/init.d/{{ appname }}
+- name: configure permissions on {{ appname }} start script
+  file: 
+    dest=/etc/rc.d/init.d/{{ appname }}
+    mode=0755
+- name: configure "{{ appname }}" service to autostart
+  command: 'chkconfig ntpd on'
+  notify:
+  - restart "{{ appname }}"
+- name: copy {{ appname }} logrotate configuraton template
+  template: 
+    src: "logrotate.{{ appname }}.j2"
+    dest: "/etc/logrotate.d/{{ appname }}"
+- name: copy {{ appname }} rsyslog configuration template
+  template: 
+    src: "rsyslog.{{ appname }}.conf.j2"
+    dest: "/etc/rsyslog.d/{{ appname }}.conf"
+- name: configure rsyslog to autostart
+  command: 'chkconfig rsyslog on'
+  notify:
+  - restart rsyslog
+- name: Confirm {{ appname }} listener port is active
+  shell: 'netstat -an | grep {{ listenport }}'
+  register: listenerstatus
+- debug:
+    var: listenerstatus
+    

@@ -1,0 +1,8 @@
+---
+appname: test
+listenport: 28780
+shutdownport: 28705
+ajpport: 28709
+xms: 512
+xmx: 512
+wshost: https://dev-services.risk.regn.net/VPSService

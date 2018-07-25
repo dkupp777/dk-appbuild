@@ -1,0 +1,4 @@
+#!/bin/bash
+JAVA_HOME=/opt/java/current
+JAVA_OPTS="-Xms{{ xms }}m -Xmx{{ xmx }}m -DencryptionUtil.properties.location=/vc/etc-test/config/jboss-eap-6.3/conf/encryptionUtil.properties -Dcom.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize=true -Dwshost={{ wshost }} -Dconfig.file.path=/vc/etc/payments"
+CATALINA_OPTS="-Djava.library.path=/usr/local/apr/lib"

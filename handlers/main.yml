@@ -1,0 +1,5 @@
+---
+- name: restart "{{ appname }}"
+  command: 'service {{ appname }} restart'
+- name: restart rsyslog
+  command: 'service rsyslog restart'

@@ -1,0 +1,10 @@
+/vc/{{ appname }}/current/logs/catalina.out {
+  copytruncate
+  daily
+  rotate 366
+  compress
+  missingok
+  postrotate
+  /root/adminapps/archiveVitalchekLogs.sh /vc/{{ appname }}/current/logs
+  endscript
+}
