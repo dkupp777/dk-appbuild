@@ -1,0 +1,35 @@
+image: williamyeh/ansible:centos7
+
+variables:
+   GIT_SUBMODULE_STRATEGY: recursive
+   role: appbuild
+   playbook: $role.yml
+   rolesdir: /etc/ansible/roles
+
+before_script:
+  - export ANSIBLE_HOST_KEY_CHECKING=false
+  - export ANSIBLE_FORCE_COLOR=true
+  - yum install rsync git -y --nogpgcheck
+  - git submodule update --recursive --remote
+  - cp -R /media/packages/environment/inventory  /etc/ansible/
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVKEY" | tr -d '\r' | ssh-add -> /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - mkdir -p $rolesdir
+  - cp -R external/java $rolesdir/java
+  - cp -R external/tomcat $rolesdir/tomcat
+  - rsync -ar --exclude=.git --exclude=roles . $rolesdir/$role
+
+stages:
+ #- lint
+  - stage
+  - deploy
+
+staging:
+  stage: stage
+  script:
+  - ansible-playbook $playbook -i /etc/ansible/inventory/staging $playbook
+  environment:
+    name: staging
+    
